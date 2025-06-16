@@ -1,12 +1,34 @@
 import os
+import sys
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
-print(f"api key is loaded: {api_key}")
 client = genai.Client(api_key=api_key)
-response = client.models.generate_content(model="gemini-2.0-flash-001", contents="Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum.")
-print(response.text)
-print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+
+user_prompt = ""
+
+if len(sys.argv) > 1:
+    for item in sys.argv[1:]:
+        if item != "--verbose":
+            user_prompt = item
+
+verbose = "--verbose" in sys.argv
+
+messages = [
+    types.Content(role="user", parts=[types.Part(text=user_prompt)]),
+]
+
+if user_prompt and verbose:
+    response = client.models.generate_content(model="gemini-2.0-flash-001", contents=messages)
+    print(f"User prompt: {user_prompt}")
+    print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+    print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+elif user_prompt:
+    response = client.models.generate_content(model="gemini-2.0-flash-001", contents=messages)
+    print(response.text)
+else:
+    print("error")
+    sys.exit(1)
