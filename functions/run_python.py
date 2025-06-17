@@ -26,7 +26,16 @@ def run_python_file(working_directory, file_path):
     else:
         try:
             x = subprocess.run(["python3", resolved_path], capture_output=True, timeout=30)
-            string = str(x.stdout) + str(x.stderr) + str(x.returncode)
+
+            if x.returncode != 0:
+                string = "STDOUT:" + str(x.stdout) + "\n" + "STDERR:" + str(x.stderr) + "\n" + "Process exited with code " + str(x.returncode)
+
+            elif str(x.stderr) + str(x.stdout) + str(x.returncode) == "":
+                return "No output produced"
+
+            else:
+                string = "STDOUT:" + str(x.stdout) + "\n" + "STDERR:" + str(x.stderr) + "\n" + str(x.returncode)
+            
             return string
         except Exception as e:
             return f"Error: executing Python file: {e}"
