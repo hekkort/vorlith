@@ -1,4 +1,4 @@
-from functions.run_python import run_python_file
+from functions.run_python_file import run_python_file
 #print(get_files_info("calculator", "."))
 #print(get_files_info("calculator", "pkg"))
 #print(get_files_info("calculator", "/bin"))
