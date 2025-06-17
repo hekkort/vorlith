@@ -20,6 +20,9 @@ You are a helpful AI coding agent.
 When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
 
 - List files and directories
+- Read file contents
+- Execute Python files with optional arguments
+- Write or overwrite files
 
 All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
 """
@@ -54,7 +57,7 @@ schema_get_file_content = types.FunctionDeclaration(
 
 schema_run_python_file = types.FunctionDeclaration(
     name="run_python_file",
-    description="Execute Python files with optional arguments.",
+    description="Execute Python files in the specified working directory.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
         properties={
@@ -98,7 +101,10 @@ if len(sys.argv) > 1:
         if item != "--verbose":
             user_prompt = item
 
-verbose = "--verbose" in sys.argv
+if "--verbose" in sys.argv:
+    verbose = True
+else:
+    verbose = False
 
 messages = [
     types.Content(role="user", parts=[types.Part(text=user_prompt)]),
@@ -120,7 +126,7 @@ if user_prompt:
     if response.function_calls:
         for item in response.function_calls:
             try:
-                x = call_function(item)
+                x = call_function(item, verbose)
                 if verbose:
                     if x.parts[0].function_response.response:
                         print(f"-> {x.parts[0].function_response.response}")
