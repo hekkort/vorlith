@@ -137,6 +137,7 @@ if user_prompt:
         else:
             print(response.text)
             break
+        count += 1
           
 else:
     print("error")
