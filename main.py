@@ -3,6 +3,11 @@ import sys
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from functions.call_function import call_function
+from functions.get_file_content import get_file_content
+from functions.get_files_info import get_files_info
+from functions.run_python_file import run_python_file
+from functions.write_file import write_file
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -49,7 +54,7 @@ schema_get_file_content = types.FunctionDeclaration(
 
 schema_run_python_file = types.FunctionDeclaration(
     name="run_python_file",
-    description="Execute Python files with optional arguments, constrained to the working directory.",
+    description="Execute Python files with optional arguments.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
         properties={
@@ -99,22 +104,30 @@ messages = [
     types.Content(role="user", parts=[types.Part(text=user_prompt)]),
 ]
 
-if user_prompt and verbose:
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-001", 
-        contents=messages,
-        config=types.GenerateContentConfig(system_instruction=system_prompt))
-    print(f"User prompt: {user_prompt}")
-    print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-    print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
-elif user_prompt:
+# if user_prompt and verbose:
+#     response = client.models.generate_content(
+#         model="gemini-2.0-flash-001", 
+#         contents=messages,
+#         config=types.GenerateContentConfig(system_instruction=system_prompt))
+#     print(f"User prompt: {user_prompt}")
+#     print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+#     print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+if user_prompt:
     response = client.models.generate_content(
         model="gemini-2.0-flash-001", 
         contents=messages,
         config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt))
     if response.function_calls:
         for item in response.function_calls:
-            print(f"Calling function: {item.name}({item.args})")
+            try:
+                x = call_function(item)
+                if verbose:
+                    if x.parts[0].function_response.response:
+                        print(f"-> {x.parts[0].function_response.response}")
+                    else:
+                        raise Exception("Fatal error")
+            except Exception as e:
+                print(f"Error: {type(e)} {e}")
     else:
         print(response.text)
 else:

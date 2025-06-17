@@ -1,7 +1,7 @@
-from get_file_content import get_file_content
-from get_files_info import get_files_info
-from run_python_file import run_python_file
-from write_file import write_file
+from .get_file_content import get_file_content
+from .get_files_info import get_files_info
+from .run_python_file import run_python_file
+from .write_file import write_file
 from google.genai import types
 
 
@@ -26,7 +26,7 @@ def call_function(function_call_part, verbose=False):
         )
 
     elif function_call_part.name == "get_files_info":
-        kw_dict = {"working_directory": "./calculator", "file_path": function_call_part.args["file_path"]}
+        kw_dict = {"working_directory": "./calculator", "directory": function_call_part.args.get("directory", ".")}
         x = get_files_info(**kw_dict)
         return types.Content(
             role="tool",
