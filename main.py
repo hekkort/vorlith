@@ -109,33 +109,39 @@ else:
 messages = [
     types.Content(role="user", parts=[types.Part(text=user_prompt)]),
 ]
+count = 0
 
-# if user_prompt and verbose:
-#     response = client.models.generate_content(
-#         model="gemini-2.0-flash-001", 
-#         contents=messages,
-#         config=types.GenerateContentConfig(system_instruction=system_prompt))
-#     print(f"User prompt: {user_prompt}")
-#     print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-#     print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+
 if user_prompt:
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-001", 
-        contents=messages,
-        config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt))
-    if response.function_calls:
-        for item in response.function_calls:
-            try:
-                x = call_function(item, verbose)
-                if verbose:
-                    if x.parts[0].function_response.response:
-                        print(f"-> {x.parts[0].function_response.response}")
-                    else:
-                        raise Exception("Fatal error")
-            except Exception as e:
-                print(f"Error: {type(e)} {e}")
-    else:
-        print(response.text)
+    while count < 20:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-001", 
+            contents=messages,
+            config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt))
+        for i in response.candidates:
+            messages.append(i.content)
+
+        if response.function_calls:
+            for item in response.function_calls:
+                try:
+                    x = call_function(item, verbose)
+                    messages.append(x)
+
+                    if verbose:
+                        if x.parts[0].function_response.response:
+                            print(f"-> {x.parts[0].function_response.response}")
+                        else:
+                            raise Exception("Fatal error")
+                except Exception as e:
+                    print(f"Error: {type(e)} {e}")
+        else:
+            print(response.text)
+            break
+          
 else:
     print("error")
     sys.exit(1)
+    
+
+
+    
