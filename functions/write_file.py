@@ -17,6 +17,3 @@ def write_file(working_directory, file_path, content):
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
     except Exception as e:
         return f'Error: could not create directory{e}'
-    #try:
-    #    if not os.path.exists(abs_file_path):
-    #        os.makedirs(file_path)

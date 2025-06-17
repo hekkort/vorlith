@@ -9,10 +9,6 @@ def run_python_file(working_directory, file_path):
     path = Path(abs_file_path)
     resolved_path = path.resolve()
     resolved_path = str(resolved_path)
-    
-    # print(resolved_path[-3:])
-    # print(resolved_path)
-    # print(os.path.exists(resolved_path))
 
     if os.path.commonpath([resolved_path, working_directory]) != working_directory:
         return f'Error: Cannot execute "{file_path}" as it is outside the permitted working directory'
