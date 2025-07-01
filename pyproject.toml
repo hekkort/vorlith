@@ -1,0 +1,10 @@
+[project]
+name = "vorlith"
+version = "0.1.0"
+description = "Sad AI agent to help me browse files and directories, to be expanded in the future"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "google-genai==1.12.1",
+    "python-dotenv==1.1.0",
+]
