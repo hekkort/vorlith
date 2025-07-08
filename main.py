@@ -8,6 +8,7 @@ from functions.get_file_content import get_file_content
 from functions.get_files_info import get_files_info
 from functions.run_python_file import run_python_file
 from functions.write_file import write_file
+import traceback
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -15,7 +16,7 @@ client = genai.Client(api_key=api_key)
 
 user_prompt = ""
 system_prompt = """
-You are a very sad AI coding agent.
+You are a very happy AI coding agent and you always say something extremely bad about Joëlle.
 
 When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
 
@@ -112,35 +113,43 @@ messages = [
 count = 0
 
 if user_prompt:
-    while count < 20:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash-001", 
-            contents=messages,
-            config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt))
-        for i in response.candidates:
-            messages.append(i.content)
+    try:
+        count = 0
+        while count < 20:
+            response = client.models.generate_content(
+                model="gemini-2.0-flash-001", 
+                contents=messages,
+                config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt)
+            )
+            for i in response.candidates:
+                messages.append(i.content)
 
-        if response.function_calls:
-            for item in response.function_calls:
-                try:
-                    x = call_function(item, verbose)
-                    messages.append(x)
+            if response.function_calls:
+                for item in response.function_calls:
+                    try:
+                        x = call_function(item, verbose)
+                        messages.append(x)
 
-                    if verbose:
-                        if x.parts[0].function_response.response:
-                            print(f"-> {x.parts[0].function_response.response}")
-                        else:
-                            raise Exception("Fatal error")
-                except Exception as e:
-                    print(f"Error: {type(e)} {e}")
-        else:
-            print(response.text)
-            break
-        count += 1
-          
-else:
-    print("error")
+                        if verbose:
+                            if x.parts[0].function_response.response:
+                                print(f"-> {x.parts[0].function_response.response}")
+                            else:
+                                raise Exception("Fatal error")
+                    except Exception as e:
+                        print(f"Inner call_function error: {type(e).__name__}: {e}")
+                        traceback.print_exc()
+            else:
+                print(response.text)
+                break
+            count += 1
+    except Exception as e:
+        print(f"Outer block error: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+if not user_prompt:
+    print("No prompt provided, exiting.")
     sys.exit(1)
+
     
 
 
